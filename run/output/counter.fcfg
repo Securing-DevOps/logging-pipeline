@@ -1,0 +1,31 @@
+-- original configuration
+filename 		= "counter.lua"
+message_matcher = "Type == 'inject_payload'"
+-- message_matcher = "TRUE"
+ticker_interval = 0
+output_dir      = "/app/output/payload"
+
+-- Hindsight defaults and overrides
+Hostname = [[7bde14bd8cd7]]
+Pid = 135
+log_level = 6
+path = [[/usr/lib/luasandbox/modules/?.lua;/usr/lib/luasandbox/io_modules/?.lua]]
+cpath = [[/usr/lib/luasandbox/modules/?.so;/usr/lib/luasandbox/io_modules/?.so]]
+output_path = [[output]]
+output_size = 67108864
+max_message_size = 65536
+sandbox_load_path = [[load]]
+sandbox_run_path = [[run]]
+sandbox_install_path = [[/usr/share/luasandbox/sandboxes/heka]]
+
+-- Sandbox defaults and overrides
+Logger = [[output.counter]]
+output_limit = 65536
+memory_limit = 8388608
+instruction_limit = 1000000
+ticker_interval = 0
+preserve_data = false
+restricted_headers = false
+shutdown_on_terminate = false
+async_buffer_size = 0
+-- end Hindsight configuration
