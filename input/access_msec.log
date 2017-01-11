@@ -1,0 +1,4 @@
+1483480633.496 "1.2.3.4" "POST /event HTTP/1.1" 200 2 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0" 0.001 0.001 "-" -
+1483480634.981 "5.6.7.8" "POST /event HTTP/1.1" 200 2 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0" 0.003 0.003 "-" -
+1483480636.084 "9.10.11.12" "POST /api/login HTTP/1.1" 200 111 "-" "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:50.0) Gecko/20100101 Firefox/50.1.0 Waterfox/50.1.0" 0.002 0.002 "-" -
+1483480636.160 "13.14.15.16" "POST /api/login HTTP/1.1" 200 111 "-" "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0" 0.002 0.002 "-" -
