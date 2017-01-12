@@ -15,13 +15,13 @@ Payload     = nil,
 Fields      = nil
 }
 
-local grammar = clf.build_nginx_grammar('$msec "$http_x_forwarded_for" "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time $upstream_response_time "$gzip_ratio"')
+-- local grammar = clf.build_nginx_grammar('$msec "$http_x_forwarded_for" "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time $upstream_response_time "$gzip_ratio"')
+local grammar = clf.build_nginx_grammar('$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"')
 local cnt = 0;
 local fn = read_config("input_file")
 
-function process_message(offset)
+function process_message()
     local fh = assert(io.open(fn, "rb"))
-    if offset then fh:seek("set", offset) end
 
     for line in fh:lines() do
         local fields = grammar:match(line)

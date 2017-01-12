@@ -13,3 +13,4 @@ end
 function timer_event()
     inject_payload("txt", "count", string.format("%d message analysed", msgcount))
 end
+
