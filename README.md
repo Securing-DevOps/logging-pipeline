@@ -7,7 +7,7 @@ container, as follows:
 ```bash
 $ docker run -it \
     -v $(pwd)/cfg:/app/cfg \
-    -v $(pwd)/input:/app/input \
+    -v $(pwd)/logs:/app/logs \
     -v $(pwd)/run:/app/run \
     -v $(pwd)/output:/app/output
     mozilla/hindsight

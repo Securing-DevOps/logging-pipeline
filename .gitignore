@@ -1,4 +1,4 @@
-input/*.log
+logs/*
 run/input/*.fcfg
 run/analysis/*.fcfg
 run/output/*.fcfg
