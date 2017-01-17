@@ -5,6 +5,8 @@ hindsight. You can run the code here using the mozilla/hindsight docker
 container, as follows:
 
 ```bash
+$ docker pull mozilla/hindsight
+
 $ docker run -it \
     -v $(pwd)/cfg:/app/cfg \
     -v $(pwd)/logs:/app/logs \
@@ -15,3 +17,5 @@ $ docker run -it \
 
 This will mount the local directories into the Docker container and execute
 hindsight. Resulting data will be put into the `output` directory.
+
+When developping, plugins should be put in the `run` directory.
