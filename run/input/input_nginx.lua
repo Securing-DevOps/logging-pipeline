@@ -1,7 +1,3 @@
--- This Source Code Form is subject to the terms of the Mozilla Public
--- License, v. 2.0. If a copy of the MPL was not distributed with this
--- file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
 require "io"
 
 local clf = require "lpeg.common_log_format"
@@ -15,7 +11,6 @@ Payload     = nil,
 Fields      = nil
 }
 
--- local grammar = clf.build_nginx_grammar('$msec "$http_x_forwarded_for" "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time $upstream_response_time "$gzip_ratio"')
 local grammar = clf.build_nginx_grammar('$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"')
 local cnt = 0;
 local fn = read_config("input_file")
