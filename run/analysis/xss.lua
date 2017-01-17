@@ -13,5 +13,5 @@ function process_message()
 end
 
 function timer_event()
-    inject_payload("txt", "alerts")
+    inject_payload("txt", "xss_alerts")
 end
