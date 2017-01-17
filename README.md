@@ -76,17 +76,70 @@ When running the docker container of hindsight with the local directories
 mounter, global configuration is loaded from `cfg/hindsight.cfg`. Samples logs
 files are taken from `logs/` and output plugins write their data to `output/`.
 
+```
+$ tree -L 1
+.
+├── cfg
+├── logs
+├── output
+└── run
+```
+
 Let's take a quick look at some of these files to understand how Hindsight uses
 them. Our input is an Nginx access log file stored under `logs/nginx_access.log`.
 The configuration at `run/input/input_nginx.cfg` instructs the plugin at
 `run/input/input_nginx.lua` to read this file, standardizes its fields and
 passes each log entry over to the analysis layer.
 
+```
+$ cat run/input/input_nginx.cfg 
+filename          = "input_nginx.lua"
+input_file        = "logs/nginx_access.log"
+instruction_limit = 0
+```
+
 The Lua source code of the plugin [can be seen here](https://github.com/Securing-DevOps/logging-pipeline/blob/master/run/input/input_nginx.lua).
 It reads the logs file line by line and parses each line using a custom grammar
 configured to understand the Nginx log format. The parser uses a Lua library
 called lpeg which transforms a log line into a map of fields. The map is then
 stored into a Hindsight message and injected into the analysis queue.
+
+```lua
+require "io"
+
+local clf = require "lpeg.common_log_format"
+
+local msg = {
+Timestamp   = nil,
+Type        = "logfile",
+Hostname    = "localhost",
+Logger      = "nginx",
+Payload     = nil,
+Fields      = nil
+}
+
+local grammar = clf.build_nginx_grammar('$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"')
+local cnt = 0;
+local fn = read_config("input_file")
+
+function process_message()
+    local fh = assert(io.open(fn, "rb"))
+
+    for line in fh:lines() do
+        local fields = grammar:match(line)
+        if fields then
+            msg.Timestamp = fields.time
+            fields.time = nil
+            msg.Fields = fields
+            inject_message(msg, fh:seek())
+            cnt = cnt + 1
+        end
+    end
+    fh:close()
+
+    return 0, tostring(cnt)
+end
+```
 
 Hindsight takes care of forwarding the message to the next layer, where analysis
 plugins will perform further work. In an environment that processes many
@@ -96,8 +149,15 @@ at the counter analysis plugin, whose only task is to count the number of
 messages that pass through it. Its configuration file [can be seen
 here](https://github.com/Securing-DevOps/logging-pipeline/blob/master/run/analysis/counter.cfg).
 Note the message_matcher directive in this file. It contains a matching rule that
-gets applied to every message entering the analysis queue of Hindsight. When a
-message matches the rule, Hindsight sends it for processing to the plugin
+gets applied to every message entering the analysis queue of Hindsight.
+
+```
+filename        = "counter.lua"
+message_matcher = "Logger == 'nginx' && Type == 'logfile' && Fields[request] =~ '^GET ' && Fields[remote_addr] != '172.21.0.2'"
+ticker_interval = 5
+```
+
+When a message matches the rule, Hindsight sends it for processing to the plugin
 [located
 here](https://github.com/Securing-DevOps/logging-pipeline/blob/master/run/analysis/counter.lua).
 
@@ -109,6 +169,20 @@ publishes the latest total over to the output queue through the
 The **timer_event** function is only executed periodically, as defined by
 the **ticker_interval** set in the plugin configuration. In our case, it will
 run every 5 seconds.
+
+```lua
+require "string"
+msgcount = 0
+
+function process_message()
+    msgcount = msgcount + 1
+    return 0
+end
+
+function timer_event()
+    inject_payload("txt", "count", string.format("%d message analysed", msgcount))
+end
+```
 
 When the counter plugin injects a payload, Hindsight forwards that payload to
 the output queue. We're in the last part of the processing logic, where plugins
@@ -126,6 +200,14 @@ write them under the `output/payload` directory, effectively storing a count of
 Nginx logs whose request and remote IP addresses matched the filter of the
 counter plugin.
 
+```
+$ cat run/output/heka_inject_payload.cfg 
+filename        = "heka_inject_payload.lua"
+message_matcher = "Type == 'inject_payload'"
+output_dir      = "output/payload"
+```
+
+The output can be seen in `output/payload/analysis.counter.count.txt`.
 ```
 $ cat output/payload/analysis.counter.count.txt 
 1731 message analysed
