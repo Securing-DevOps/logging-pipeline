@@ -18,7 +18,7 @@ $ docker run -it \
 This will mount the local directories into the Docker container and execute
 hindsight. Resulting data will be put into the `output` directory.
 
-When developping, plugins should be put in the `run` directory.
+When developing, plugins should be put in the `run` directory.
 
 ## Tutorial
 
@@ -44,7 +44,7 @@ which is what this tutorial uses. The processing works as follows:
 2. Standardized messages are then forwarded to analysis plugins. Routing and
    multiplexing happens to allow several plugins to receive a copy of a given
    message. Plugins run arbitrary code written to achieve very specific tasks:
-   compute statistics, flag event containing a given string, etc. New data
+   compute statistics, flag events containing a given string, etc. New data
    created by analysis plugin is injected into the payload buffer for
    incremental construction of the final payload output.
 
@@ -164,7 +164,7 @@ here](https://github.com/Securing-DevOps/logging-pipeline/blob/master/run/analys
 The source code of the counter analyzer couldn't be more simple. That analyzer
 only counts messages it receives into a **msgcount** variable and periodically
 publishes the latest total over to the output queue through the
-**inject_payload**function.
+**inject_payload** function.
 
 The **timer_event** function is only executed periodically, as defined by
 the **ticker_interval** set in the plugin configuration. In our case, it will
