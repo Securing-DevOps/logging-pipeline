@@ -8,14 +8,14 @@ local xss = '((\%3C)|<)((\%2F)|\/)*[a-z0-9\%]+((\%3E)|>)'
 -- by storing a 5 minutes circular buffer for each IP
 -- If no traffic is received after 5 minutes, the stats
 -- for a given IP are garbage collected.
-client_stats = {}
+local client_stats = {}
 
 -- client_violations countain a count of recorded violations
 -- for each client IP. A violation is recorded when a client
 -- triggers the violations_threshold
-client_violations = {}
+local client_violations = {}
 
-threshold = read_config("violations_threshold")
+local threshold = read_config("violations_threshold")
 
 function ipv4_str_to_int(ipstr)
   local o1,o2,o3,o4 = ipstr:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")
