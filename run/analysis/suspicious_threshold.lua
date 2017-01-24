@@ -8,10 +8,14 @@ local xss = '((\%3C)|<)((\%2F)|\/)*[a-z0-9\%]+((\%3E)|>)'
 -- by storing a 5 minutes circular buffer for each IP
 -- If no traffic is received after 5 minutes, the stats
 -- for a given IP are garbage collected.
-local client_stats = {}
+client_stats = {}
 
-local client_violations = {}
-local threshold = read_config("violations_threshold")
+-- client_violations countain a count of recorded violations
+-- for each client IP. A violation is recorded when a client
+-- triggers the violations_threshold
+client_violations = {}
+
+threshold = read_config("violations_threshold")
 
 function ipv4_str_to_int(ipstr)
   local o1,o2,o3,o4 = ipstr:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")
@@ -38,8 +42,7 @@ function process_message()
   end
   cb:add(t, 1, 1)
 
-  -- sum up attempt over the last 5 minutes and if more than
-  -- 50, send an alert payload
+  -- sum up violations over the last 5 minutes
   local count = 0
   local vals = cb:get_range(1)
   for i=1,5 do
@@ -48,18 +51,18 @@ function process_message()
     end
   end
 
-  -- if a previous violations were sent for this client, increase
-  -- the threshold to not send duplicate alerts
+  -- only send one violation per threshold increments
+  -- if the threshold is 20, send it at 20, 40, 60, ...
   local pv = client_violations[ip]
   if pv then
     pv = pv + 1
   else
     pv = 1
   end
-  if count > (threshold * pv) then
+  if count >= (threshold * pv) then
     add_to_payload(
       string.format("ALERT: %d repeated xss attempts from %s\n",
-        count*pv, read_message("Fields[remote_addr]")))
+        count, read_message("Fields[remote_addr]")))
     client_violations[ip] = pv
   end
 
