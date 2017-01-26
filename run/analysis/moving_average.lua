@@ -4,8 +4,6 @@ require "os"
 require "math"
 require "string"
 
-local average = 0.0
-
 local mv_avg_min  = read_config("moving_average_minutes")
 local max_cli_min = read_config("max_clients_per_min")
 
@@ -34,45 +32,45 @@ function process_message()
     -- create a cuckoo filter with max 1024 entries
     cf = cuckoo_filter.new(max_cli_min)
   end
-
   local remote_addr = read_message("Fields[remote_addr]")
   local ip = ipv4_str_to_int(remote_addr)
   if not cf:query(ip) then
     cf:add(ip)
     seenip[current_minute] = cf
   end
+
+  -- compare the rate of the current IP with the 
   return 0
 end
 
+local most_recent_avg = 0
+
 function timer_event()
-  local now = os.time(os.date("*t"))
-  -- recalculate the moving average over the last 7 minutes,
-  -- ignoring the current minute which may not be finished
-  local reqcounts = reqcnt:get_range(1)
-  local totalreq = 0
-  average = 0
-  for i = 1,mv_avg_min do
-    -- get the seenip timestamp based on the timestamp of the newest
-    -- row in the reqcount circular buffer
-    local ts = os.date("%Y%m%d%H%M",
-                       math.floor(reqcnt:current_time()/1e9) - (60*(i-1)))
-    local cf = seenip[ts]
-    if cf then
-      if reqcounts[i] > 0 then
-        add_to_payload(
-          string.format("seen %d IPs and %d requests at %s\n",
-            cf:count(), reqcounts[i], ts))
-        local weighted_avg = average * i
-        local current_avg = reqcounts[i] / cf:count()
-        average = (weighted_avg + current_avg) / (i + 1)
+  local last_ts = math.floor(reqcnt:current_time()/1e9)
+  -- if new data has been received, recalculate the moving average
+  if last_ts > most_recent_avg then
+    local reqcounts = reqcnt:get_range(1)
+    local average = 0.0
+    for i = 1,mv_avg_min do
+      -- get the seenip timestamp based on the timestamp of the newest
+      -- row in the reqcount circular buffer
+      local ts = os.date("%Y%m%d%H%M", last_ts - (60*(i-1)))
+      local cf = seenip[ts]
+      if cf then
+        if reqcounts[i] > 0 then
+          local weighted_avg = average * i
+          local current_avg = reqcounts[i] / cf:count()
+          average = (weighted_avg + current_avg) / (i + 1)
+        end
       end
     end
+    inject_payload("float", "moving_average", average)
+    most_recent_avg = last_ts
   end
-  add_to_payload(string.format("moving average: %f\n", average))
-  inject_payload("txt", "high_rate_clients")
 
   -- garbage collection: remove entries that are older
   -- than mv_avg_min minutes
+  local now = os.time(os.date("*t"))
   local earliest = os.date("%Y%m%d%H%M", now - (60 * mv_avg_min))
   for ts, _ in pairs(seenip) do
     if ts < earliest then
