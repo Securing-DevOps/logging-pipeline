@@ -18,7 +18,7 @@ $ docker run -it \
 This will mount the local directories into the Docker container and execute
 hindsight. Resulting data will be put into the `output` directory.
 
-When developping, plugins should be put in the `run` directory.
+When developing, plugins should be put in the `run` directory.
 
 ## Tutorial
 
