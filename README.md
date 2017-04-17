@@ -27,7 +27,7 @@ built to process logs and telemetry from Firefox Services. Heka was written in
 Go and eventually ran into the limits of the runtime. The Heka developers
 decided to rewrite it into two components: a light weight data processing kernel,
 written in C, that controls Lua plugins executed inside a sandbox. The project,
-called Hindsight, is available at github.com/mozilla-services/hindsight.
+called Hindsight, is available at [github.com/mozilla-services/hindsight](https://github.com/mozilla-services/hindsight).
 
 Hindsight sits behind the streaming layer of the logging pipeline, typically
 consuming logs from a Kafka broker. It can also be used to read local log files,
