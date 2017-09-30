@@ -7,6 +7,8 @@ container, as follows:
 ```bash
 $ docker pull mozilla/hindsight
 
+$ chmod 777 output run -R
+
 $ docker run -it \
     -v $(pwd)/cfg:/app/cfg \
     -v $(pwd)/logs:/app/logs \
